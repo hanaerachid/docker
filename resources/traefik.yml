@@ -28,4 +28,4 @@ api:
   dashboard: true
 
 log:
-  level: INFO
+  level: INFO # consider WARN for production usage !

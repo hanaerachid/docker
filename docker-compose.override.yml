@@ -9,7 +9,7 @@ volumes:
 
 services:
   georchestra-127-0-1-1.traefik.me:
-    image: traefik:2.4
+    image: traefik
     ports:
       - "80:80"
       - "443:443"
@@ -18,56 +18,111 @@ services:
       - ./resources/ssl:/etc/certs:ro
       - ./resources/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./resources/traefik-config.yml:/etc/traefik/config.yml:ro
-    restart: always
+    restart: unless-stopped
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.rule=Host(`georchestra-127-0-1-1.traefik.me`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
-      - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=traefik-strip"
-      - "traefik.http.middlewares.traefik-strip.stripprefix.prefixes=/traefik"
+      traefik.enable: true
+      traefik.http.routers.traefik.tls: true
+      #traefik.http.routers.traefik.entrypoints: websecure
+      traefik.http.routers.traefik.rule: Host(`georchestra-127-0-1-1.traefik.me`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))
+      traefik.http.routers.traefik.service: api@internal
+      traefik.http.routers.traefik.middlewares: traefik-strip
+      traefik.http.middlewares.traefik-strip.stripprefix.prefixes: /traefik
+
+
+  #~ static:
+    #~ image: nginx:stable
+    #~ restart: unless-stopped
+    #~ volumes:
+      #~ - ./resources/static:/usr/share/nginx/html:ro
+      #~ - /etc/localtime:/etc/localtime:ro
+    #~ labels:
+      #~ traefik.enable: true
+      #~ traefik.http.routers.static.tls: true
+      #~ traefik.http.routers.static.rule: Host(`georchestra-127-0-1-1.traefik.me`)
+      #~ #traefik.http.services.static.loadbalancer.server.port: 80
+      #~ #traefik.http.routers.static.entrypoints: http
+      #~ traefik.http.routers.static.priority: 1
+      #~ # todo: add gzip
+
+  static-errors:
+    image: nginx:stable
+    restart: unless-stopped
+    volumes:
+      - ./resources/static:/usr/share/nginx/html:ro
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      traefik.enable: true
+      traefik.http.services.static-errors-service.loadbalancer.server.port: 443 
+      traefik.http.routers.errorpage-router.tls: true
+      traefik.http.routers.errorpage-router.rule: Host(`georchestra-127-0-1-1.traefik.me`) #HostRegexp(`{host:.+}`)
+      traefik.http.routers.errorpage-router.entrypoints: websecure
+      traefik.http.routers.errorpage-router.priority: 1
+      # todo: add gzip
+      # todo: split ?
+      traefik.http.middlewares.static-errors-middleware.errors.status: 400-599
+      traefik.http.middlewares.static-errors-middleware.errors.service: static-errors-service
+      traefik.http.middlewares.static-errors-middleware.errors.query: /errors/50x.html
+
+  httpbin:
+    image: kennethreitz/httpbin:latest
+    labels:
+      traefik.enable: true
+      traefik.http.services.httpbin-service.loadbalancer.server.port: 443
+      traefik.http.routers.httpbin-router.tls: true
+      traefik.http.routers.httpbin-router.rule: Host(`georchestra-127-0-1-1.traefik.me`) && PathPrefix(`/status`)
+      traefik.http.routers.httpbin-router.entryPoints: websecure
+      traefik.http.routers.httpbin-router.middlewares: static-errors-middleware@docker
 
   proxy:
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.proxy.tls=true"
-      - "traefik.http.routers.proxy.rule=Host(`georchestra-127-0-1-1.traefik.me`)"
+      traefik.enable: true
+      traefik.http.routers.proxy-router.tls: true
+      traefik.http.routers.proxy-router.priority: 100
+      traefik.http.routers.proxy-router.rule: Host(`georchestra-127-0-1-1.traefik.me`) && (PathPrefix(`/_static`) || PathPrefix(`/login`) || PathPrefix(`/header`) || PathPrefix(`/mapfishapp`) || PathPrefix(`/extractorapp`) || PathPrefix(`/geoserver`) || PathPrefix(`/console`) || PathPrefix(`/geonetwork`) || PathPrefix(`/analytics`) || PathPrefix(`/mapstore`) || PathPrefix(`/datafeeder`) || PathPrefix(`/import`))
+      traefik.http.routers.proxy-router.middlewares: static-errors-middleware@docker
+      #traefik.http.services.proxy.loadbalancer.server.port: 443
+      #traefik.http.routers.proxy.entrypoints: websecure
 
   cas:
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.cas.tls=true"
-      - "traefik.http.routers.cas.rule=Host(`georchestra-127-0-1-1.traefik.me`) && PathPrefix(`/cas`)"
+      traefik.enable: true
+      traefik.http.routers.cas-router.tls: true
+      traefik.http.routers.cas-router.priority: 100
+      traefik.http.routers.cas-router.rule: Host(`georchestra-127-0-1-1.traefik.me`) && PathPrefix(`/cas`)
+      traefik.http.routers.cas-router.middlewares: static-errors-middleware@docker
+      #traefik.http.services.cas.loadbalancer.server.port: 443
+      #traefik.http.routers.cas.entrypoints: websecure
 
-  smtp:
-    image: camptocamp/smtp-sink:latest
-    volumes:
-      - smtp_maildir:/home/smtp/Maildir/
-    restart: always
+      
+  #~ smtp:
+    #~ image: camptocamp/smtp-sink:latest
+    #~ volumes:
+      #~ - smtp_maildir:/home/smtp/Maildir/
+    #~ restart: unless-stopped
 
-  courier-imap:
-    image: camptocamp/courier-imap:latest
-    volumes:
-      - smtp_maildir:/home/smtp/Maildir/
-    restart: always
+  #~ courier-imap:
+    #~ image: camptocamp/courier-imap:latest
+    #~ volumes:
+      #~ - smtp_maildir:/home/smtp/Maildir/
+    #~ restart: unless-stopped
 
-  webmail:
-    image: camptocamp/sqwebmail:latest
-    environment:
-      - IMAP_HOSTNAME=courier-imap
-      - SMTP_HOSTNAME=smtp-sink
-    volumes:
-      - smtp_maildir:/home/smtp/Maildir/
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.webmail.tls=true"
-      - "traefik.http.routers.webmail.rule=Host(`georchestra-127-0-1-1.traefik.me`) && PathPrefix(`/webmail`)"
-    restart: always
+  #~ webmail:
+    #~ image: camptocamp/sqwebmail:latest
+    #~ environment:
+      #~ - IMAP_HOSTNAME=courier-imap
+      #~ - SMTP_HOSTNAME=smtp-sink
+    #~ volumes:
+      #~ - smtp_maildir:/home/smtp/Maildir/
+    #~ labels:
+      #~ - "traefik.enable=true"
+      #~ - "traefik.http.routers.webmail.tls=true"
+      #~ - "traefik.http.routers.webmail.rule=Host(`georchestra-127-0-1-1.traefik.me`) && PathPrefix(`/webmail`)"
+    #~ restart: unless-stopped
 
-  ssh:
-    image: georchestra/ssh_data:latest
-    ports:
-      - "2222:22"
-    volumes:
-      - geoserver_geodata:/mnt/geoserver_geodata
-    restart: always
+  #~ ssh:
+    #~ image: georchestra/ssh_data:latest
+    #~ ports:
+      #~ - "2222:22"
+    #~ volumes:
+      #~ - geoserver_geodata:/mnt/geoserver_geodata
+    #~ restart: unless-stopped

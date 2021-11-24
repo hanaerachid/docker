@@ -59,6 +59,19 @@ services:
       - XMS=256M
       - XMX=1G
     restart: always
+  gateway:
+    image: georchestra/gateway:latest
+    depends_on:
+      - ldap
+      - database
+    volumes:
+      - ./config:/etc/georchestra
+    environment:
+      - XMS=256M
+      - XMX=512M
+    restart: always
+    ports:
+      - 8080:8080
 
   cas:
     image: georchestra/cas:latest
@@ -157,6 +170,8 @@ services:
       - XMS=256M
       - XMX=6G
     restart: always
+    ports:
+      - 5005:5005
 
   analytics:
     image: georchestra/analytics:latest

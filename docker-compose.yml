@@ -67,8 +67,7 @@ services:
     volumes:
       - ./config:/etc/georchestra
     environment:
-      - XMS=256M
-      - XMX=512M
+      - JAVA_TOOL_OPTIONS=-Dgeorchestra.datadir=file:/etc/georchestra -Xmx512M
     restart: always
     ports:
       - 8080:8080

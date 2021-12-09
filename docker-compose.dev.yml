@@ -1,0 +1,53 @@
+# Maps all backend services to predefined host ports
+version: "3.1"
+
+services:
+  gateway:
+    ports:
+      - 8080:8080
+  database:
+    ports:
+      - 54321:5432
+  ldap:
+    ports:
+      - 3891:389
+  proxy:
+    ports:
+      - 10000:8080
+  cas:
+    ports:
+      - 10002:8080
+  header:
+    ports:
+      - 10003:8080
+  mapfishapp:
+    ports:
+      - 10004:8080
+  extractorapp:
+    ports:
+      - 10005:8080
+  geoserver:
+    ports:
+      - 10006:8080
+  console:
+    ports:
+      - 10007:8080
+  geonetwork:
+    ports:
+      - 5005:5005
+      - 10008:8080
+  analytics:
+    ports:
+      - 10009:8080
+  mapstore:
+    ports:
+      - 10010:8080
+  postgis:
+    ports:
+      - 54322:5432
+  datafeeder:
+    ports:
+      - 10011:8080
+  import:
+    ports:
+      - 10012:80

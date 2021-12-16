@@ -80,11 +80,3 @@ services:
       - "traefik.http.routers.webmail.tls=true"
       - "traefik.http.routers.webmail.rule=Host(`georchestra-127-0-1-1.traefik.me`) && PathPrefix(`/webmail`)"
     restart: always
-
-  ssh:
-    image: georchestra/ssh_data:latest
-    ports:
-      - "2222:22"
-    volumes:
-      - geoserver_geodata:/mnt/geoserver_geodata
-    restart: always

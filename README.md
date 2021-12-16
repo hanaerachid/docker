@@ -121,3 +121,17 @@ Most changes will require a service restart, except maybe updating viewer contex
 
 Images used in the current composition are pulled from docker hub, which means they've been compiled by [github actions](https://github.com/georchestra/georchestra/actions).
 In case you have to build these images by yourself, please refer to the [docker images build instructions](https://github.com/georchestra/georchestra/blob/master/docker/README.md).
+
+## DEV for the console
+
+Before starting the composition, be sure to edit the `targets-mapping.properties` file in the `config` subfolder (aka datadir):
+
+```
+--- a/security-proxy/targets-mapping.properties
++++ b/security-proxy/targets-mapping.properties
+@@ -1,6 +1,6 @@
+ analytics=http://analytics:8080/analytics/
+ atlas=http://atlas:8080/atlas/
+-console=http://console:8080/console/
++console=http://host:8286/console/
+```

@@ -124,6 +124,11 @@ In case you have to build these images by yourself, please refer to the [docker 
 
 ## DEV for the console
 
+The setup is as follows:
+ * the current docker composition provides all the required middleware (front with ssl, ldap, db, smtp) with ports bound to localhost
+ * the console app runs locally on your host through Jetty, makes use of those services
+ * the security proxy (running on docker) is able to access the console app running on localhost:8286 through host aliasing (see below)
+
 Before starting the composition, be sure to edit the `targets-mapping.properties` file in the `config` subfolder (aka datadir):
 
 ```
@@ -135,3 +140,7 @@ Before starting the composition, be sure to edit the `targets-mapping.properties
 -console=http://console:8080/console/
 +console=http://host:8286/console/
 ```
+
+Running the console app with jetty implies:
+ * installing it with `mvn -P-all,console -DskipTests clean install` from georchestra repository root
+ * running it with `mvn -Dgeorchestra.datadir=/etc/georchestra jetty:run` (from the georchestra_repository_root/console folder), where /etc/georchestra points at a directory where https://github.com/georchestra/datadir/ has been checked out on the branch master (and `default.properties` locally edited to match `domainName=georchestra-127-0-1-1.traefik.me`)

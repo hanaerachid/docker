@@ -58,6 +58,8 @@ services:
 
   smtp:
     image: camptocamp/smtp-sink:latest
+    ports:
+      - "25:25"
     volumes:
       - smtp_maildir:/home/smtp/Maildir/
     restart: always

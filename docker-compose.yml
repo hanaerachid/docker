@@ -229,3 +229,9 @@ services:
     volumes:
       - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
 
+  http2demo:
+    image: groldan/georchestra-http2-demo:latest
+    
+  wsdemo:
+    image: groldan/georchestra-websockets-demo:latest
+    

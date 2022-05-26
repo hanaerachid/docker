@@ -67,7 +67,7 @@ services:
     volumes:
       - ./config:/etc/georchestra
     environment:
-      - JAVA_TOOL_OPTIONS=-Dgeorchestra.datadir=file:/etc/georchestra -Xmx512M
+      - JAVA_TOOL_OPTIONS=-Dgeorchestra.datadir=/etc/georchestra -Dspring.profiles.active=docker -Xmx512M
     restart: always
     ports:
       - 8080:8080

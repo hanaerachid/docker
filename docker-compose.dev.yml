@@ -7,8 +7,9 @@ volumes:
 
 services:
   gateway:
-    ports:
-      - 8080:8080
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dgeorchestra.datadir=/etc/georchestra -Dspring.profiles.active=docker -Xmx512M -Dgeorchestra.gateway.security.ldap.ldap2.enabled=true -Dgeorchestra.gateway.security.ldap.ldap2.url=ldap://ldap2:389
+
   database:
     ports:
       - 54321:5432

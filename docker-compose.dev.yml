@@ -1,6 +1,10 @@
 # Maps all backend services to predefined host ports
 version: "3.1"
 
+volumes:
+  ldap2_data:
+  ldap2_config:
+
 services:
   gateway:
     ports:
@@ -11,6 +15,26 @@ services:
   ldap:
     ports:
       - 3891:389
+
+  ldap2:
+    image: georchestra/ldap:latest
+    secrets:
+      - slapd_password
+      - geoserver_privileged_user_passwd
+    environment:
+        - SLAPD_ORGANISATION=georchestra
+        - SLAPD_DOMAIN=georchestra.org
+        - SLAPD_PASSWORD_FILE=/run/secrets/slapd_password
+        - SLAPD_PASSWORD=
+        - GEOSERVER_PRIVILEGED_USER_PASSWORD_FILE=/run/secrets/geoserver_privileged_user_passwd
+        - SLAPD_LOG_LEVEL=32768 # See https://www.openldap.org/doc/admin24/slapdconfig.html#loglevel%20%3Clevel%3E
+    volumes:
+      - ldap2_data:/var/lib/ldap
+      - ldap2_config:/etc/ldap
+    restart: always
+    ports:
+      - 3899:389
+        
   proxy:
     ports:
       - 10000:8080

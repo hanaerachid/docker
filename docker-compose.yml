@@ -48,18 +48,6 @@ services:
     restart: always
 
   proxy:
-    image: georchestra/security-proxy:latest
-    depends_on:
-      - ldap
-      - database
-    volumes:
-      - ./config:/etc/georchestra
-    environment:
-      - JAVA_OPTIONS=-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF
-      - XMS=256M
-      - XMX=1G
-    restart: always
-  gateway:
     image: georchestra/gateway:latest
     depends_on:
       - ldap
@@ -67,10 +55,10 @@ services:
     volumes:
       - ./config:/etc/georchestra
     environment:
-      - JAVA_TOOL_OPTIONS=-Dgeorchestra.datadir=/etc/georchestra -Dspring.profiles.active=docker -Xmx512M
+      - JAVA_TOOL_OPTIONS=-Dgeorchestra.datadir=/etc/georchestra -Dspring.config.location=/etc/georchestra/gateway/application.yaml -Xmx512M
     restart: always
     ports:
-      - 8080:8080
+    - "8080:8080"
 
   cas:
     image: georchestra/cas:latest
@@ -92,19 +80,6 @@ services:
       - JAVA_OPTIONS=-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF
       - XMS=256M
       - XMX=512M
-    restart: always
-
-  mapfishapp:
-    image: georchestra/mapfishapp:latest
-    depends_on:
-      - database
-    volumes:
-      - ./config:/etc/georchestra
-      - mapfishapp_uploads:/mnt/mapfishapp_uploads
-    environment:
-      - JAVA_OPTIONS=-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF
-      - XMS=256M
-      - XMX=2G
     restart: always
 
   extractorapp:
@@ -226,4 +201,3 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     volumes:
       - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
-

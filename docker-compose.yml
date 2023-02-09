@@ -9,9 +9,10 @@ volumes:
   geoserver_tiles:
   geoserver_native_libs:
   mapstore_extensions:
-  geonetwork_datadir:
   datafeeder_uploads:
   datafeeder_postgis_data:
+  geonetwork_datadir:
+  esdata:
 
 secrets:
   slapd_password:
@@ -190,6 +191,8 @@ services:
     image: elasticsearch:7.9.0
     environment:
       discovery.type: single-node
+    volumes:
+      - esdata:/usr/share/elasticsearch/data:rw
 
   kibana:
     image: kibana:7.9.0

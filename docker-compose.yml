@@ -179,7 +179,8 @@ services:
       - ./config:/etc/georchestra
       - datafeeder_uploads:/tmp/datafeeder
     environment:
-      - JAVA_OPTS=-Xms512m -Xmx512m -XX:MaxPermSize=128m
+      - JAVA_OPTS=-Xms512m -Xmx512m
+      - LOGGING_LEVEL_ORG_GEORCHESTRA_DATAFEEDER=WARN
 
   import:
     image: georchestra/datafeeder-frontend:21.0-SNAPSHOT

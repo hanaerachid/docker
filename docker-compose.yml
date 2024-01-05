@@ -14,6 +14,7 @@ volumes:
   datafeeder_postgis_data:
   esdata:
   georchestra_datadir:
+  rabbitmq_data:
 
 secrets:
   slapd_password:
@@ -36,8 +37,9 @@ services:
         condition: service_completed_successfully
     environment:
       - DEBUG=yes
-      - SUBST_FILES=/etc/georchestra/security-proxy/targets-mapping.properties /etc/georchestra/datafeeder/frontend-config.json /etc/georchestra/geonetwork/microservices/ogc-api-records/config.yml
+      - SUBST_FILES=/etc/georchestra/security-proxy/targets-mapping.properties /etc/georchestra/datafeeder/frontend-config.json /etc/georchestra/datafeeder/metadata_* /etc/georchestra/geonetwork/microservices/ogc-api-records/config.yml
     env_file:
+      - .envs-common
       - .envs-hosts
     volumes:
       - georchestra_datadir:/etc/georchestra
@@ -58,8 +60,6 @@ services:
     depends_on:
       envsubst:
         condition: service_completed_successfully
-    ports:
-      - "389:389"
     secrets:
       - slapd_password
       - geoserver_privileged_user_passwd
@@ -178,6 +178,8 @@ services:
         condition: service_healthy
       database:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - georchestra_datadir:/etc/georchestra
     environment:
@@ -187,7 +189,9 @@ services:
     env_file:
       - .envs-common
       - .envs-ldap
+      - .envs-rabbitmq
       - .envs-database-georchestra
+      - .envs-hosts
     restart: always
 
   geonetwork:
@@ -231,6 +235,7 @@ services:
     environment:
       ASSETS_DIRECTORY_OVERRIDE: /etc/georchestra/datahub/assets
       CONFIG_DIRECTORY_OVERRIDE: /etc/georchestra/datahub/conf
+      CUSTOM_SCRIPTS_DIRECTORY: /etc/georchestra/datahub/scripts
     volumes:
       - georchestra_datadir:/etc/georchestra
     restart: always
@@ -275,6 +280,8 @@ services:
     env_file:
       - .envs-ldap
       - .envs-database-georchestra
+    restart: always
+
   postgis:
     # used by datafeeder to ingest uploaded user datasets into
     image: postgis/postgis:13-3.1-alpine
@@ -316,6 +323,7 @@ services:
       - .envs-hosts
       - .envs-database-georchestra
       - .envs-database-datafeeder
+    restart: always
 
   import:
     image: georchestra/datafeeder-frontend:latest
@@ -327,8 +335,11 @@ services:
     depends_on:
       envsubst:
         condition: service_completed_successfully
+    environment:
+      CUSTOM_SCRIPTS_DIRECTORY: /etc/georchestra/datafeeder/scripts_frontend
     volumes:
       - georchestra_datadir:/etc/georchestra
+    restart: always
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
@@ -349,6 +360,7 @@ services:
     environment:
       discovery.type: single-node
       ES_JAVA_OPTS: -Xms512m -Xmx512m
+    restart: always
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.15.1
@@ -364,6 +376,7 @@ services:
       - .envs-hosts
     volumes:
       - ./resources/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    restart: always
 
   ogc-api-records:
     image: geonetwork/gn-cloud-ogc-api-records-service:4.2.2
@@ -382,3 +395,19 @@ services:
       JAVA_OPTS: -Dfile.encoding=UTF-8
     volumes:
       - georchestra_datadir:/etc/georchestra
+    restart: always
+      
+  rabbitmq:
+    image: docker.io/bitnami/rabbitmq:3.12
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q check_local_alarms
+      interval: 60s
+      timeout: 30s
+      retries: 3
+    env_file:
+      - .envs-rabbitmq
+    environment:
+      - RABBITMQ_LOGS=-
+    volumes:
+      - 'rabbitmq_data:/bitnami/rabbitmq/mnesia'
+    restart: always

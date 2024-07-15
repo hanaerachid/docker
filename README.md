@@ -50,7 +50,7 @@ docker compose down
 
 **4. Play**
 
-Open [https://georchestra-127-0-1-1.traefik.me/](https://georchestra-127-0-1-1.traefik.me/) in your browser.
+Open [https://localhost/](https://localhost/) in your browser.
 
 To login, use these credentials:
  * `testuser` / `testuser`
@@ -58,24 +58,24 @@ To login, use these credentials:
 
 To upload data into the GeoServer data volume (`geoserver_geodata`), use `rsync`:
 ```
-rsync -arv -e 'ssh -p 2222' /path/to/geodata/ geoserver@georchestra-127-0-1-1.traefik.me:/mnt/geoserver_geodata/
+rsync -arv -e 'ssh -p 2222' /path/to/geodata/ geoserver@localhost:/mnt/geoserver_geodata/
 ```
 (password is: `geoserver`)
 
 Files uploaded into this volume will also be available to the geoserver instance in `/mnt/geoserver_geodata/`.
 
 Emails sent by the SDI (eg when users request a new password) will not be relayed on the internet but trapped by a local SMTP service.  
-These emails can be read on https://georchestra-127-0-1-1.traefik.me/webmail/ (with login `smtp` and password `smtp`).
+These emails can be read on https://localhost/webmail/ (with login `smtp` and password `smtp`).
 
 
 ## About the domain name
 
-The current FQDN `georchestra-127-0-1-1.traefik.me` resolves to 127.0.1.1, thanks to [traefik.me](https://traefik.me/) which provides wildcard DNS for any IP address.
+The current FQDN `localhost` resolves to 127.0.1.1, thanks to [traefik.me](https://traefik.me/) which provides wildcard DNS for any IP address.
 
 To change it:
  * Rename the traefik service in the `docker-compose.override.yml` file to match the new domain
  * Modify the three `traefik.http.routers.*.rule` in the `docker-compose.override.yml` file
- * Update the FQDN variable in [.envs-common](.envs-common) file (hint: grep for `georchestra-127-0-1-1.traefik.me`)
+ * Update the FQDN variable in [.envs-common](.envs-common) file (hint: grep for `localhost`)
  * Put a valid SSL certificate in the `resources/ssl` folder and declare it in the `resources/traefik-config.yml` file
 
 ## Notes
@@ -211,7 +211,7 @@ In /docker :
 
 `docker compose up -d`
 
-You can now test modifications locally with the current FQDN (by default `georchestra-127-0-1-1.traefik.me`).
+You can now test modifications locally with the current FQDN (by default `localhost`).
 
 **3. Debug**
 

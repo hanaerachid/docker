@@ -6,3 +6,7 @@
 	path = resources/static
 	url = https://github.com/georchestra/htdocs.git
 	branch = master
+[submodule "mapstore"]
+	path = mapstore
+	url = "https://github.com/georchestra/mapstore2-georchestra.git"
+	branch = f3ce6b9eb6f684bc0932b54af7738e965d8c26c2

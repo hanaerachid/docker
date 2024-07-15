@@ -1,4 +1,4 @@
 # envs-common
-FQDN=georchestra-127-0-1-1.traefik.me
+FQDN=urban-doodle-v9rg6ww59vqfww66-443.app.github.dev
 SMTPHOST=smtp
 SMTPPORT=25
